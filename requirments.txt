@@ -7,5 +7,5 @@ matplotlib==3.5.2
 seaborn==0.13.1
 geoplot==0.5.1
 statsmodels==0.14.1
-eature-engine==1.6.2
+feature-engine==1.6.2
 spatial-kfold==0.0.3
