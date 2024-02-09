@@ -4,7 +4,7 @@ import math
 
 
 
-def temporalKFold(dftmp:pd.DataFrame, date_col:str ="date", num_folds:int=5, random_state:int=None) -> pd.DataFrame:
+def temporalKFold(dftmp:pd.DataFrame, date_col:str ="date", num_folds:int=5, shuffle:bool=True, random_state:int=None) -> pd.DataFrame:
     """
     Creates 'num_folds' temporal folds based on the specified 'date_column' in the DataFrame 'data'.
     This function is a valuable tool in spatiotemporal modeling scenarios where multiple measurements
@@ -32,9 +32,11 @@ def temporalKFold(dftmp:pd.DataFrame, date_col:str ="date", num_folds:int=5, ran
     # Determine the unique dates in the dataframe
     unique_dates = dftmp[date_col].unique()
     split_size = math.ceil(len(unique_dates) / num_folds)
-    if random_state is not None:
-        np.random.seed(random_state)
-    unique_dates = pd.DatetimeIndex(np.random.permutation(unique_dates))  # Shuffle the dates
+
+    if shuffle is True:
+        if random_state is not None:
+            np.random.seed(random_state)
+        unique_dates = pd.DatetimeIndex(np.random.permutation(unique_dates))  # Shuffle the dates
     
     blocks_list = [dftmp[dftmp['date'].isin(unique_dates[i * split_size: (i + 1) * split_size])].assign(temp_fold=i+1) for i in range(num_folds)]
     blocks_folds_dftmp = pd.DataFrame(pd.concat(blocks_list))
