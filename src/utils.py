@@ -41,3 +41,40 @@ def temporalKFold(dftmp:pd.DataFrame, date_col:str ="date", num_folds:int=5, shu
     blocks_list = [dftmp[dftmp['date'].isin(unique_dates[i * split_size: (i + 1) * split_size])].assign(temp_fold=i+1) for i in range(num_folds)]
     blocks_folds_dftmp = pd.DataFrame(pd.concat(blocks_list))
     return blocks_folds_dftmp
+
+class CustomCrossValidation:
+    # References:
+    # - Article: Cross-Validation Techniques for Time Series Data
+    #   (https://python.plainenglish.io/cross-validation-techniques-for-time-series-data-d1ad7a3a680b)
+    # - Blog: Writing Custom Cross-Validation Methods — Grid Search
+    #   (https://nander.cc/writing-custom-cross-validation-methods-grid-search)
+    
+    @classmethod
+    def preq_bls(cls, data: pd.DataFrame, date_col: str = "date", n_folds: int = 5):
+        """Divide data into blocks. Incrementally slide over blocks. A test block is added to the training block."""
+        
+        # Ensure the 'date' column is in datetime format
+        if not isinstance(data[date_col].dtype, np.datetime64):
+            data[date_col] = pd.to_datetime(data[date_col])
+
+        # Get unique dates to use as indices for splitting
+        indices = data[date_col].unique()
+        
+        # Calculate block size based on the number of folds
+        block_size = math.ceil(len(indices) / n_folds)
+        
+        # Generate train/test indices using a sliding window approach
+        block_starts = np.arange(0, len(data) + 1, block_size)
+        for i in range(n_folds-1):
+            train_start = block_starts[0]
+            train_end = block_starts[i+1]
+            test_start = block_starts[i+1]
+            test_end = block_starts[i+2]
+            
+            # Extract indices for training and testing sets
+            train_idx = indices[train_start:train_end]
+            test_idx = indices[test_start:test_end]
+            
+            # Use pandas to filter data based on the selected indices and yield the result
+            yield list(data[data[date_col].isin(train_idx)].index), list(data[data[date_col].isin(test_idx)].index)
+
