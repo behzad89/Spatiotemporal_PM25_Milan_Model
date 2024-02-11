@@ -5,9 +5,6 @@ The table presents a comprehensive overview of the performance metrics for diffe
 
 | Model                   | Train RMSE/R²    | Test RMSE/R²     | Spatial CV RMSE/R²  | Temporal CV RMSE/R²   |
 |-------------------------|------------------|------------------|----------------------|----------------------|
-| Linear regression       | 4.14/0.92        | 4.15/0.92        | 4.22/0.92            | 4.16/0.92            |
-| Random Forest           | 0.48/1.00        | 1.5/0.99         | 1.67/0.99            | 3.32/0.95            |
-| Tuned Random Forest     | 3.52/0.95        | 3.47/0.95        | 3.56/0.94            | 3.56/0.94            |
-
-
-
+| Linear regression       | 4.01/0.93        | 3.99/0.93        | 4.04/0.93            | 4.03/0.93            |
+| Random Forest           | 0.38/1.00        | 1.10/0.99        | 1.19/0.99            | 4.35/0.92            |
+| Tuned Random Forest     | 4.19/0.92        | 4.13/0.92        | 4.15/0.92            | 4.43/0.91            |
