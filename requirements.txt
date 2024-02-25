@@ -10,4 +10,5 @@ statsmodels==0.14.1
 feature-engine==1.6.2
 spatial-kfold==0.0.3
 cdsapi==0.6.1
+dask==2024.1.1
 -e .

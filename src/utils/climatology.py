@@ -65,6 +65,7 @@ def download_ERA_Land(variable:List[str], year:int, month:int, area:List[float],
                 )
         # Download the retrieved data and save it to the specified file path
         r.download(file_path)
+        return file_path
     except Exception as e:
             raise CustomException(e,sys)
 

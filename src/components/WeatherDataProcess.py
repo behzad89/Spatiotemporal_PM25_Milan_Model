@@ -1,9 +1,16 @@
-from src.utils.climatology import download_ERA_Land, create_cdsapirc_file
-from dataclasses import dataclass,field
+import os
+import sys
+import time
+from typing import List
+
+import xarray as xr
+from dask.distributed import LocalCluster
+from dataclasses import dataclass, field
+
 from src.exception import CustomException
 from src.logger import logging
-import os, sys
-from typing import List
+from src.utils.climatology import download_ERA_Land
+
 
 
 @dataclass
@@ -36,3 +43,44 @@ class WeatherDataDownloader:
         except Exception as e:
             raise CustomException(e,sys)
         
+        
+class WeatherTransformer:
+    def __init__(self,files: List[str],variable:str) -> None:
+        self.files = files
+        self.variable = variable
+
+    def convertor(self):
+        try:
+
+
+            # Step 1: Create a Dask Cluster
+            logging.info("Step 1: Create Dask Cluster")
+            cluster = LocalCluster(n_workers=8, threads_per_worker=3)
+            client = cluster.get_client()
+            time.sleep(3)
+
+            # Step 2: Resample hourly data to daily data using xarray
+            logging.info("Step 2: Resample hourly data to daily data")
+            ds = xr.open_mfdataset(self.files, parallel=False)
+            daily_ds = ds.resample(time='1D').mean().rename({'time': 'date'})
+
+            # Step 3: Create a directory to save independent variables
+            logging.info("Step 3: Make a directory to save independent variables")
+            output_dir = os.path.join(os.getcwd(), "independent-variables",self.variable)
+            os.makedirs(output_dir, exist_ok=True)
+
+            # Step 4: Convert the resampled dataset to a Dask DataFrame
+            logging.info("Step 4: Convert Dataset to DataFrame")
+            df = daily_ds.to_dask_dataframe().repartition(npartitions=10)
+
+            # Step 5: Save the DataFrame as a parquet file in the output directory
+            name_function = lambda x: f"{self.variable}-{x}.parquet"
+            df.to_parquet(output_dir,name_function=name_function)
+            logging.info("Step 5: Data Saved to independent-variables/")
+
+            # Step 6: Close the Dask Cluster
+            return cluster.close()
+
+        except Exception as e:
+            # If any exception occurs, raise a CustomException
+            raise CustomException(e, sys)

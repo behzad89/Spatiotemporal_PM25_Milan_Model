@@ -1,7 +1,11 @@
-from src.utils.climatology import create_cdsapirc_file
-from src.components.WeatherDataProcess import WeatherDataConfig,WeatherDataDownloader
-import concurrent.futures
 import threading
+import concurrent.futures
+
+from src.utils.climatology import create_cdsapirc_file
+from src.components.WeatherDataProcess import (WeatherDataConfig, 
+                                               WeatherDataDownloader, 
+                                               WeatherTransformer)
+
 
 CDSAPI_KEY = "1004:751df99f-695b-494a-bb42-11652a943996"
 START_YEAR = 2016
@@ -36,11 +40,11 @@ def parallel_download(variable):
                 futures.extend(executor.submit(download_weather_data, variable, year, m) for _, m in batch)
 
         # Wait for all tasks to complete
-        results = [future.result() for future in concurrent.futures.as_completed(futures)]
+        results = [future.result() for future in futures]
 
     return results
 
 if __name__ == "__main__":
-    for V in VARIABLES:
-        file_paths = parallel_download(V)
-        print(file_paths)
+    for var in VARIABLES:
+        file_paths = parallel_download(var)
+        WeatherTransformer(file_paths,var).convertor()
