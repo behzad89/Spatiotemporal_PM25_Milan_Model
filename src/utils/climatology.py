@@ -39,7 +39,7 @@ def download_ERA_Land(variable:List[str], year:int, month:int, area:List[float],
     '''
     try:
         # Generate a list of days in the specified month
-        days = [1]#range(1, monthrange(year, month)[1] + 1)
+        days = range(1, monthrange(year, month)[1] + 1)
 
         # Construct the request parameters
         request = {
@@ -47,7 +47,7 @@ def download_ERA_Land(variable:List[str], year:int, month:int, area:List[float],
                     'year': "%04d" % year,
                     'month': "%02d" % month ,
                     'day': ["%02d" % d for d in days],
-                    'time': ["%02d:00" % h for h in range(0, 1)],
+                    'time': ["%02d:00" % h for h in range(0, 24)],
                     'area': area, # North, West, South, East
                     'format':'netcdf'
         }
@@ -63,10 +63,8 @@ def download_ERA_Land(variable:List[str], year:int, month:int, area:List[float],
                 'reanalysis-era5-land',
                 request
                 )
-
         # Download the retrieved data and save it to the specified file path
         r.download(file_path)
-        return file_path
     except Exception as e:
             raise CustomException(e,sys)
 
