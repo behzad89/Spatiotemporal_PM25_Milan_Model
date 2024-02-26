@@ -9,9 +9,11 @@ from src.components.WeatherDataProcess import (WeatherDataConfig,
 
 CDSAPI_KEY = "1004:751df99f-695b-494a-bb42-11652a943996"
 START_YEAR = 2016
-END_YEAR = 2017
+END_YEAR = 2022
 AREA_OF_INTEREST=[44.547420,6.795044,46.176027,12.084961]
-VARIABLES = ["2m_temperature"]
+VARIABLES = ["2m_temperature","2m_dewpoint_temperature",
+             "10m_u_component_of_wind","10m_v_component_of_wind",
+             "total_precipitation","surface_net_solar_radiation"]
 MAX_CONCURRENT_DOWNLOADS = 10 # CDS does not let to download more than 10 simultaneously
 
 # Assign Key
