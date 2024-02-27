@@ -1,14 +1,12 @@
 import os
 import sys
-import time
 from typing import List
 
 import xarray as xr
 import pystac_client
 import planetary_computer
-from dask.distributed import LocalCluster
-from dataclasses import dataclass, field
 
+from dataclasses import dataclass
 from src.exception import CustomException
 from src.logger import logging
 
@@ -57,28 +55,19 @@ class WeatherDataProcessor:
             output_dir = os.path.join(os.getcwd(), "independent-variables", "weather_data")
             os.makedirs(output_dir, exist_ok=True)
 
-            # Step 2: Create a Dask Cluster
-            logging.info("Step 2: Create Dask Cluster")
-            cluster = LocalCluster(n_workers=40, threads_per_worker=3)
-            client = cluster.get_client()
-            time.sleep(3)
-
-            # Step 3: Resample hourly data to daily data using xarray
+            # Step 2: Resample hourly data to daily data using xarray
             logging.info("Step 3: Resample hourly data to daily data")
             daily_ds = ds.resample(time='1D').mean().rename({'time': 'date'})
 
-            # Step 4: Convert the resampled dataset to a Dask DataFrame
-            logging.info("Step 4: Convert Dataset to DataFrame")
+            # Step 3: Convert the resampled dataset to a Dask DataFrame
+            logging.info("Step 3: Convert Dataset to DataFrame")
             df = daily_ds.to_dask_dataframe().repartition(npartitions=240)
 
 
-            # Step 5: Save the DataFrame as a parquet file in the output directory
+            # Step 4: Save the DataFrame as a parquet file in the output directory
             name_function = lambda x: f"weather_data{self.year}-{x}.parquet"
             df.to_parquet(output_dir,name_function=name_function)
             logging.info(f"Step 5: {self.year} Data Saved to {output_dir}")
-
-            # Step 6: Close the Dask Cluster
-            cluster.close()
 
             return output_dir
         
