@@ -11,5 +11,8 @@ feature-engine==1.6.2
 spatial-kfold==0.0.3
 cdsapi==0.6.1
 dask[complete]==2024.1.1
-xarray==2024.2.0
+xarray[complete]==2024.2.0
+pystac-client==0.7.5
+planetary-computer==1.0.0
+adlfs==2024.2.0
 -e .
