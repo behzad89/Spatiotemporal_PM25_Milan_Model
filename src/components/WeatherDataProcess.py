@@ -1,10 +1,10 @@
-import os
-import sys
+import os, sys
 from typing import List
 
 import xarray as xr
 import pystac_client
 import planetary_computer
+from src.utils.climatology import h3_idx
 
 from dataclasses import dataclass
 from src.exception import CustomException
@@ -35,7 +35,7 @@ class WeatherDataProcessor:
             catalog = pystac_client.Client.open(self.config.client)
 
             search = catalog.search(collections=[self.config.collection], 
-                                    datetime=time_range,bbox=self.area)
+                                    datetime=time_range)
             
             items = search.item_collection()
 
@@ -50,23 +50,33 @@ class WeatherDataProcessor:
             ds = xr.combine_by_coords(datasets, join="exact")
             logging.info(f" The DASK object -> {ds.dims}")
 
-            # Step 1: Create a directory to save independent variables
-            logging.info("Step 1: Make a directory to save independent variables")
+            logging.info("Filter based on BBOX")
+            ds_filter = ds.sel(lat=slice(self.area[2], self.area[0]), # Start with high lat
+                                lon=slice(self.area[1],self.area[3]))
+
+            # Create a directory to save independent variables
+            logging.info("Make a directory to save independent variables")
             output_dir = os.path.join(os.getcwd(), "independent-variables", "weather_data")
             os.makedirs(output_dir, exist_ok=True)
 
-            # Step 2: Resample hourly data to daily data using xarray
-            logging.info("Step 3: Resample hourly data to daily data")
-            daily_ds = ds.resample(time='1D').mean().rename({'time': 'date'})
+            # Resample hourly data to daily data using xarray
+            logging.info("Resample hourly data to daily data")
+            daily_ds = ds_filter.resample(time='1D').mean().rename({'time': 'date'})
 
-            # Step 3: Convert the resampled dataset to a Dask DataFrame
-            logging.info("Step 3: Convert Dataset to DataFrame")
-            df = daily_ds.to_dask_dataframe().repartition(npartitions=240)
+            # Convert the resampled dataset to a Dask DataFrame
+            logging.info("Convert Dataset to DataFrame")
+            df = daily_ds.to_dask_dataframe().repartition(npartitions=10)
 
 
-            # Step 4: Save the DataFrame as a parquet file in the output directory
+            # Apply the function to each row in the DataFrame
+            df = df.apply(h3_idx, axis=1,meta=dict(df.dtypes))
+
+            # Drop Lat and Long to save space
+            df = df.drop(["lat","lon"], axis=1)
+
+            # Save the DataFrame as a parquet file in the output directory
             name_function = lambda x: f"weather_data{self.year}-{x}.parquet"
-            df.to_parquet(output_dir,name_function=name_function)
+            df.to_parquet(output_dir,name_function=name_function,write_index=False)
             logging.info(f"Step 5: {self.year} Data Saved to {output_dir}")
 
             return output_dir
