@@ -40,6 +40,10 @@ class WeatherDataProcessor:
             
             items = search.item_collection()
 
+            if len(items) == 0:
+                logging.info(f"There is no data for {self.year}")
+                sys.exit(0)
+                
             logging.info(f" The number of the items -> {len(items)}")
 
             datasets=[]
