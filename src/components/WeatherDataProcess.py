@@ -5,6 +5,7 @@ import xarray as xr
 import pystac_client
 import planetary_computer
 from src.utils.climatology import h3_idx
+import numpy as np
 
 from dataclasses import dataclass
 from src.exception import CustomException
@@ -69,7 +70,7 @@ class WeatherDataProcessor:
 
 
             # Apply the function to each row in the DataFrame
-            df = df.apply(h3_idx, axis=1,meta=dict(df.dtypes))
+            df = df.apply(h3_idx, axis=1,meta={**df.dtypes.to_dict(),**{"h3_index":np.int64}})
 
             # Drop Lat and Long to save space
             df = df.drop(["lat","lon"], axis=1)
