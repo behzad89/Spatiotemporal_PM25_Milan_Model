@@ -1,13 +1,13 @@
 from dask.distributed import LocalCluster
-from src.components.WeatherDataProcess import WeatherDataProcessor
+from src.components.NDVIDataProcess import NDVIDataProcessor
 from src.logger import logging
 import time
 
 
 START_YEAR = 2016
-END_YEAR = 2020
-AREA_OF_INTEREST=[45.2248134643484434,8.6812211557677017,
-                  45.6593335936165374,9.5784069699739973]
+END_YEAR = 2022
+AREA_OF_INTEREST=[8.6812211557677017,45.2248134643484434,
+                  9.5784069699739973,45.6593335936165374]
 
 if __name__ == "__main__":
     # Step 1: Create a Dask Cluster
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     for year in range(START_YEAR, END_YEAR+1):
         # Process weather data for the current year and area of interest
         # Assuming WeatherDataProcessor has a Transformer method
-        OUTPUT = WeatherDataProcessor(year=year, bbox=AREA_OF_INTEREST).Transformer()
+        OUTPUT = NDVIDataProcessor(year=year, bbox=AREA_OF_INTEREST).Transformer()
         # Introduce a pause to manage processing or system load
         time.sleep(5)
     

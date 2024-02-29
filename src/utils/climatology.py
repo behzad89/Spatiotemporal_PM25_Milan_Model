@@ -1,4 +1,3 @@
-import h3.api.numpy_int as h3
 import cdsapi
 from calendar import monthrange
 from typing import List
@@ -81,9 +80,3 @@ def create_cdsapirc_file(key:str, url:str = "https://cds.climate.copernicus.eu/a
     # Write content to the file
     with open(file_path, 'w') as file:
         file.write(f"""url:{url}\nkey:{key} """)
-
-def h3_idx(row):
-    lat, lon = row['lat'], row['lon']
-    h3_index = h3.geo_to_h3(lat, lon, resolution=7)  # You can adjust the resolution based on your needs
-    row['h3_index'] = h3_index
-    return row

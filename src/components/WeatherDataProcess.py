@@ -4,12 +4,17 @@ from typing import List
 import xarray as xr
 import pystac_client
 import planetary_computer
-from src.utils.climatology import h3_idx
 import numpy as np
 
 from dataclasses import dataclass
 from src.exception import CustomException
 from src.logger import logging
+
+def h3_idx(row):
+    lat, lon = row['lat'], row['lon']
+    h3_index = h3.geo_to_h3(lat, lon, resolution=7)  # You can adjust the resolution based on your needs
+    row['h3_index'] = h3_index
+    return row
 
 
 @dataclass
@@ -18,19 +23,19 @@ class WeatherDataConfig:
     collection = ["era5-pds"]
 
 class WeatherDataProcessor:
-    def __init__(self,year:int, area: List[float]):
+    def __init__(self,year:int, bbox: List[float]):
         self.config = WeatherDataConfig
         self.year = year
-        self.area = area
+        self.bbox = bbox
 
     def Transformer(self) -> str:
         try:
             logging.info(f"Start to download weather; "
                         f"Year -> {self.year}; "
-                        f"AOI -> North:{self.area[0]}, "
-                        f"West:{self.area[1]}, "
-                        f"South:{self.area[2]}, "
-                        f"East:{self.area[3]}")
+                        f"AOI -> North:{self.bbox[0]}, "
+                        f"West:{self.bbox[1]}, "
+                        f"South:{self.bbox[2]}, "
+                        f"East:{self.bbox[3]}")
             
             time_range = f"{self.year}-01/{self.year}-12"
             catalog = pystac_client.Client.open(self.config.client)
@@ -56,8 +61,8 @@ class WeatherDataProcessor:
             logging.info(f" The DASK object -> {ds.dims}")
 
             logging.info("Filter based on BBOX")
-            ds_filter = ds.sel(lat=slice(self.area[2], self.area[0]), # Start with high lat
-                                lon=slice(self.area[1],self.area[3]))
+            ds_filter = ds.sel(lat=slice(self.bbox[2], self.bbox[0]), # Start with high lat
+                                lon=slice(self.bbox[1],self.bbox[3]))
 
             # Create a directory to save independent variables
             logging.info("Make a directory to save independent variables")
@@ -82,7 +87,7 @@ class WeatherDataProcessor:
             # Save the DataFrame as a parquet file in the output directory
             name_function = lambda x: f"weather_data{self.year}-{x}.parquet"
             df.to_parquet(output_dir,name_function=name_function,write_index=False)
-            logging.info(f"Step 5: {self.year} Data Saved to {output_dir}")
+            logging.info(f"{self.year} Data Saved to {output_dir}")
 
             return output_dir
         

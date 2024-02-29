@@ -16,4 +16,6 @@ pystac-client==0.7.5
 planetary-computer==1.0.0
 adlfs==2024.2.0
 h3==3.7.6
+dask-geopandas==0.3.1
+odc-stac==0.3.9
 -e .
