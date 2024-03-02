@@ -16,7 +16,7 @@ def h3_idx(row):
     row['h3_index'] = h3_index
     return row
 
-
+#TODO: Convert to the function 
 @dataclass
 class WeatherDataConfig:
     client = "https://planetarycomputer.microsoft.com/api/stac/v1/"
