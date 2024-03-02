@@ -4,6 +4,7 @@ from typing import List
 import xarray as xr
 import pystac_client
 import planetary_computer
+import h3.api.numpy_int as h3
 import numpy as np
 
 from dataclasses import dataclass
