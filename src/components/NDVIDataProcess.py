@@ -79,7 +79,7 @@ def NDVIDataTransformer(year:int, bbox: List[float]) -> str:
 
         # Convert the resampled dataset to a Dask DataFrame
         logging.info("Convert Dataset to DataFrame")
-        df = ds_filter.to_dask_dataframe()
+        df = ds_filter.to_dask_dataframe().repartition(npartitions=50) # Consider Number of threats 
 
         logging.info("Decimal to Binary")
         df['250m_16_days_VI_Quality'] = df['250m_16_days_VI_Quality'].apply(
