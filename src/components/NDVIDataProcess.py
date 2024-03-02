@@ -25,7 +25,7 @@ def h3_idx(row):
     return row
 
 def decimal_to_binary(x):
-    return bin(x)[2:]
+    return format(x, '016b')
 
 
 CLIENT = "https://planetarycomputer.microsoft.com/api/stac/v1/"
