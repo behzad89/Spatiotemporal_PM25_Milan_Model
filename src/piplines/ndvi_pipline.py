@@ -20,15 +20,13 @@ if __name__ == "__main__":
     # Allow a short pause for the cluster to stabilize
     time.sleep(5)
 
-    # # Iterate over the specified range of years
-    # for year in range(START_YEAR, END_YEAR+1):
-    #     # Process weather data for the current year and area of interest
-    #     # Assuming WeatherDataProcessor has a Transformer method
-    #     OUTPUT = NDVIDataTransformer(year=year, bbox=AREA_OF_INTEREST)
-    #     # Introduce a pause to manage processing or system load
-    #     time.sleep(5)
-
-    OUTPUT = "independent-variables/ndvi_data/download"
+    # Iterate over the specified range of years
+    for year in range(START_YEAR, END_YEAR+1):
+        # Process weather data for the current year and area of interest
+        # Assuming WeatherDataProcessor has a Transformer method
+        OUTPUT = NDVIDataTransformer(year=year, bbox=AREA_OF_INTEREST)
+        # Introduce a pause to manage processing or system load
+        time.sleep(5)
 
     logging.info(f"Downloaded to -> {OUTPUT}")
 
