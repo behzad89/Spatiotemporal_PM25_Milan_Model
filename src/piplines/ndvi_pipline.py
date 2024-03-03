@@ -20,13 +20,15 @@ if __name__ == "__main__":
     # Allow a short pause for the cluster to stabilize
     time.sleep(5)
 
-    # Iterate over the specified range of years
-    for year in range(START_YEAR, END_YEAR+1):
-        # Process weather data for the current year and area of interest
-        # Assuming WeatherDataProcessor has a Transformer method
-        OUTPUT = NDVIDataTransformer(year=year, bbox=AREA_OF_INTEREST)
-        # Introduce a pause to manage processing or system load
-        time.sleep(5)
+    # # Iterate over the specified range of years
+    # for year in range(START_YEAR, END_YEAR+1):
+    #     # Process weather data for the current year and area of interest
+    #     # Assuming WeatherDataProcessor has a Transformer method
+    #     OUTPUT = NDVIDataTransformer(year=year, bbox=AREA_OF_INTEREST)
+    #     # Introduce a pause to manage processing or system load
+    #     time.sleep(5)
+
+    OUTPUT = "independent-variables/ndvi_data/download"
 
     logging.info(f"Downloaded to -> {OUTPUT}")
 
@@ -35,7 +37,7 @@ if __name__ == "__main__":
     delayed_results = NDVIDataProcessor(OUTPUT)
 
     # Using list comprehension to create chunks of length 200
-    chunks = [delayed_results[i:i+500] for i in range(0, len(delayed_results), 500)]
+    chunks = [delayed_results[i:i+500] for i in range(0, len(delayed_results), 1000)]
 
     logging.info(f"Total number of chunks:{len(chunks)}")
 

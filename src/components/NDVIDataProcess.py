@@ -120,8 +120,14 @@ def NDVIDataProcessor(files:str) -> str:
     # Define the delayed function
     @delayed
     def WhittakerTransformer(idx,output_dir:str):
-        date = df[df['h3_index']==idx]['date'].compute().tolist()
-        ndvi = df[df['h3_index']==idx]['250m_16_days_NDVI'].values.compute()
+        # Read the parquet files and Filter the index
+        df = dd.read_parquet(files,ignore_metadata_file=False, filters=[[("h3_index", "==", idx)]])
+
+        logging.info("Filter based on Pixel Reliability")
+        df['250m_16_days_pixel_reliability'] = df['250m_16_days_pixel_reliability'].where(df['250m_16_days_pixel_reliability'] == 0)
+
+        date = df['date'].compute(scheduler='threads').tolist()
+        ndvi = df['250m_16_days_NDVI'].values.compute(scheduler='threads')
         lmbd = 6000
         d = 10
         Z, D, Zd, Dd = whittaker_f(date, ndvi, lmbd, d)
@@ -131,18 +137,10 @@ def NDVIDataProcessor(files:str) -> str:
 
     try:
         logging.info("Read PARQUET files")
-        # Read the parquet files
-        df = dd.read_parquet(files)
-
-        logging.info("Filter based on Pixel Reliability")
-
-        # Filter based on condition
-        df['250m_16_days_pixel_reliability'] = df['250m_16_days_pixel_reliability'].where(df['250m_16_days_pixel_reliability'] == 0)
-
         # Get unique indices
-        h3_idxs = df['h3_index'].unique()
+        h3_idxs = dd.read_parquet(files,ignore_metadata_file=True,columns=["h3_index"])["h3_index"].unique().compute()
 
-        logging.info(f"Number of Points -> {len(h3_idxs)} (after filter)")
+        logging.info(f"Number of Points -> {len(h3_idxs)}")
 
         output_dir = os.path.join(os.getcwd(), "independent-variables", "ndvi_data","smoothed")
         os.makedirs(output_dir, exist_ok=True)
