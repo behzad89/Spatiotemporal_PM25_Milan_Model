@@ -19,7 +19,7 @@ from src.logger import logging
 def NDVIDataProcessor(file:str) -> str:
     # Define the delayed function
     @delayed
-    def WhittakerTransformer(idx):
+    def WhittakerTransformer(output_dir,idx):
         # Read the parquet files and Filter the index
         dff = df[df['h3_index']==idx]
         date = dff['date'].compute().to_arrow().to_pylist()
@@ -28,7 +28,8 @@ def NDVIDataProcessor(file:str) -> str:
         d = 10
         Z, D, Zd, Dd = whittaker_f(date, ndvi, lmbd, d)
         dfs = pd.DataFrame({'h3_index': idx, 'date': D, 'NDVI': Z})
-        return dfs
+        dfs.to_parquet(f'{output_dir}/{idx}.parquet')
+        return output_dir
 
     try:
         logging.info("Read PARQUET file")
@@ -46,30 +47,25 @@ def NDVIDataProcessor(file:str) -> str:
 
         logging.info("Generate daily data based on Whittaker")
         # Use dask.delayed to parallelize the computations
-        delayed_results = [WhittakerTransformer(idx) for idx in h3_idxs]
+        delayed_results = [WhittakerTransformer(output_dir, idx) for idx in h3_idxs]
 
-        return delayed_results,output_dir
+        return delayed_results
 
     except Exception as e:
         raise CustomException(e,sys)
     
 
 if __name__ == "__main__":
-    cluster = LocalCUDACluster()
+    cluster = LocalCUDACluster(timeout='90s')
     client = Client(cluster)
     time.sleep(5)
 
     
     file = './independent-variables/ndvi_data/ndvi_download_2016_2023.parquet'
     logging.info(f"Read file -> {file}")
-    delayed_files, output_dir = NDVIDataProcessor(file)
+    delayed_files = NDVIDataProcessor(file)
 
-    dfs = dask.compute(*delayed_files)[0]
-
-    print(output_dir)
-
-    df = pd.concat(dfs)
-    df.to_parquet(f'{output_dir}/smoothed_ndvi.parquet')
+    output_dir = dask.compute(*delayed_files)[0]
 
     logging.info(f"File saved to -> {output_dir}")
     cluster.close()
