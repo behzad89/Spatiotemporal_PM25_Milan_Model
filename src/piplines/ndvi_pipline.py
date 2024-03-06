@@ -30,22 +30,6 @@ if __name__ == "__main__":
 
     logging.info(f"Downloaded to -> {OUTPUT}")
 
-    logging.info("Start to gap-filling of of NDVI")
-    # Get DASK delayed objects
-    delayed_results = NDVIDataProcessor(OUTPUT)
-
-    # Using list comprehension to create chunks of length 200
-    chunks = [delayed_results[i:i+1000] for i in range(0, len(delayed_results), 1000)]
-
-    logging.info(f"Total number of chunks:{len(chunks)}")
-
-    for i,c in enumerate(chunks):
-        logging.info(f"Chunk:{i+1}")
-        dfs = dask.compute(c)
-
-
-    logging.info(f"Saved to -> {dfs[0][0]}")
-
     # Allow a short pause for the cluster to stabilize
     time.sleep(5)
     # Close the Dask cluster, releasing resources

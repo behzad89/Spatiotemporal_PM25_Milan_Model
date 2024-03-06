@@ -8,12 +8,6 @@ import dask_geopandas
 import numpy as np
 import h3.api.numpy_int as h3
 
-import dask.dataframe as dd
-from dask.delayed import delayed
-from fusets.whittaker import whittaker_f
-import pandas as pd
-
-from dataclasses import dataclass
 from src.exception import CustomException
 from src.logger import logging
 
@@ -116,40 +110,3 @@ def NDVIDataTransformer(year:int, bbox: List[float]) -> str:
 
 
 
-def NDVIDataProcessor(files:str) -> str:
-    # Define the delayed function
-    @delayed
-    def WhittakerTransformer(idx,output_dir:str):
-        # Read the parquet files and Filter the index
-        df = dd.read_parquet(files,ignore_metadata_file=False, filters=[[("h3_index", "==", idx)]])
-
-        logging.info("Filter based on Pixel Reliability")
-        df['250m_16_days_pixel_reliability'] = df['250m_16_days_pixel_reliability'].where(df['250m_16_days_pixel_reliability'] == 0)
-
-        date = df['date'].compute(scheduler='threads').tolist()
-        ndvi = df['250m_16_days_NDVI'].values.compute(scheduler='threads')
-        lmbd = 6000
-        d = 10
-        Z, D, Zd, Dd = whittaker_f(date, ndvi, lmbd, d)
-        dfs = pd.DataFrame({'h3_index': idx, 'date': D, 'NDVI': Z})
-        dfs.to_parquet(f'{output_dir}/{idx}-ndvi.parquet')
-        return output_dir
-
-    try:
-        logging.info("Read PARQUET files")
-        # Get unique indices
-        h3_idxs = dd.read_parquet(files,ignore_metadata_file=True,columns=["h3_index"])["h3_index"].unique().compute()
-
-        logging.info(f"Number of Points -> {len(h3_idxs)}")
-
-        output_dir = os.path.join(os.getcwd(), "independent-variables", "ndvi_data","smoothed")
-        os.makedirs(output_dir, exist_ok=True)
-
-        logging.info("Generate daily data based on Whittaker")
-        # Use dask.delayed to parallelize the computations
-        delayed_results = [WhittakerTransformer(idx,output_dir) for idx in h3_idxs]
-
-        return delayed_results
-
-    except Exception as e:
-        raise CustomException(e,sys)
