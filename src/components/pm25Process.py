@@ -11,7 +11,7 @@ from src.logger import logging
 
 def h3_idx(row):
     lat, lon = row['lat'], row['lon']
-    h3_index = h3.geo_to_h3(lat, lon, resolution=7)  # You can adjust the resolution based on your needs
+    h3_index = h3.geo_to_h3(lat, lon, resolution=5)  # You can adjust the resolution based on your needs
     row['h3_index'] = h3_index
     return row
 
@@ -43,9 +43,6 @@ def pm25processor(filesPath:str, bbox:List[float]) -> str:
     # Apply the function to each row in the DataFrame
     df = df.apply(h3_idx, axis=1,meta={**df.dtypes.to_dict(),**{"h3_index":np.int64}})
 
-    
-    # Drop Lat and Long to save space
-    df = df.drop(["lat","lon"], axis=1)
 
     # Save the DataFrame as a parquet file in the output directory
     date = filesPath.split('.')[-2]

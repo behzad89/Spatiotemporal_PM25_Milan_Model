@@ -85,7 +85,7 @@ def NDVIDataTransformer(year:int, bbox: List[float]) -> str:
         
         logging.info("Projection")
         ddf = ddf.to_crs(epsg=4326)
-
+        
         # Drop X and Y to save space
         ddf = ddf.drop(["x","y"], axis=1)
 
@@ -96,7 +96,7 @@ def NDVIDataTransformer(year:int, bbox: List[float]) -> str:
         ddf_h3 = ddf.apply(h3_idx, axis=1,meta={**ddf.dtypes.to_dict(),**{"h3_index":np.int64}})
 
         # Drop Lat and Long to save space
-        ddf_h3 = ddf_h3.drop(["lat","lon","geometry","spatial_ref"], axis=1)
+        ddf_h3 = ddf_h3.drop(["geometry","spatial_ref"], axis=1)
 
         # Save the DataFrame as a parquet file in the output directory
         name_function = lambda x: f"ndvi_data{year}-{x}.parquet"

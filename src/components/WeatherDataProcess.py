@@ -82,9 +82,6 @@ class WeatherDataProcessor:
             # Apply the function to each row in the DataFrame
             df = df.apply(h3_idx, axis=1,meta={**df.dtypes.to_dict(),**{"h3_index":np.int64}})
 
-            # Drop Lat and Long to save space
-            df = df.drop(["lat","lon"], axis=1)
-
             # Save the DataFrame as a parquet file in the output directory
             name_function = lambda x: f"weather_data{self.year}-{x}.parquet"
             df.to_parquet(output_dir,name_function=name_function,write_index=False)
